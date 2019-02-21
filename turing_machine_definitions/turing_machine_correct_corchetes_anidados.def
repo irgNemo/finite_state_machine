@@ -1,0 +1,20 @@
+# Un maquina de turing determinista se define por la tupla (Q, Σ, Γ, f, q0, b, F)
+
+# Q: Conjunto finito y no vacio de estados del automata
+# Sigma: Alfabeto de entrada
+# R: Alfabeto de la cinta (sigma subconjunto de R)
+# f: función de transición
+# q0: Estado inicial
+# b: Espacio en blanco
+# F: Conjunto de estados finales de aceptación (no vacio y subconjunto de Q)
+
+@Q={q0,q1,q2,q3,q4,q5}
+@sigma={[,]}
+@R={[,],*,S,N,b}
+@f={(q0 [)->(q0 [ R),(q0 ])->(q1 * L),(q0 *)->(q0 * R),(q0 b)->(q3 b L),(q1 [)->(q0 * R),(q1 *)->(q1 * L),(q1 b)->(q2 N R),(q4 [)->(q4 * L),(q4 *)->(q4 * L),(q4 b)->(q2 N R),(q3 [)->(q4 * L),(q3 *)->(q3 * L),(q3 b)->(q5 S R)}
+@q0=q0
+@b=b
+@F={q5}
+
+# Cadenas de prueba
+@test={[[[]]],[],[[][]],[][,[[]]],],][}
