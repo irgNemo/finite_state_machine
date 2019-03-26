@@ -13,7 +13,7 @@ A dictionary with the automaton information validated and in proper format to be
 
 
 def build_turing_machine_model(turing_machine_tuple, final_state_symbol, states_set_symbol, initial_state_symbol,
-                          transition_function_symbol, alphabet_set_symbol, ro_set_symbol, blank_symbol):
+                          transition_function_symbol, alphabet_set_symbol, ro_set_symbol, blank_symbol, hm_set_symbol, transition_function_re):
     is_final_state = validate_final_states(turing_machine_tuple[final_state_symbol], turing_machine_tuple[states_set_symbol])
     assert is_final_state, "Final states definition is incorrect: " + final_state_symbol
     is_initial_state = validate_initial_state(turing_machine_tuple[initial_state_symbol], turing_machine_tuple[states_set_symbol])
@@ -26,19 +26,20 @@ def build_turing_machine_model(turing_machine_tuple, final_state_symbol, states_
     is_b_not_in_sigma = validate_b_not_in_sigma(turing_machine_tuple[blank_symbol],
                                                 turing_machine_tuple[alphabet_set_symbol])
     assert is_b_not_in_sigma, "Blank symbol should not be a member of sigma set"
-    transition_function_dictionary = transform_transition_function_to_dictionary(turing_machine_tuple[
+    transition_function_dictionary = transform_tm_transition_function_to_dictionary(turing_machine_tuple[
                                                                                 transition_function_symbol],
                                                                                  turing_machine_tuple[states_set_symbol],
-                                                                                 turing_machine_tuple[ro_set_symbol])
-    is_transition_function = validate_transition_function(transition_function_dictionary,
+                                                                                 turing_machine_tuple[ro_set_symbol],
+                                                                                    transition_function_re)
+    is_transition_function = validate_tm_transition_function(transition_function_dictionary,
                                                           turing_machine_tuple[states_set_symbol],
-                                                          turing_machine_tuple[ro_set_symbol])
+                                                          turing_machine_tuple[ro_set_symbol],turing_machine_tuple[hm_set_symbol])
     assert is_transition_function, "Transition function was not well constructed: " + transition_function_symbol
     return transition_function_dictionary
 
 
 def build_automaton_model(automaton_tuple, final_state_symbol, states_set_symbol, initial_state_symbol,
-                          transition_function_symbol, alphabet_set_symbol):
+                          transition_function_symbol, alphabet_set_symbol, transition_function_re):
     is_final_state = validate_final_states(automaton_tuple[final_state_symbol], automaton_tuple[states_set_symbol])
     assert is_final_state, "Final states definition is incorrect: " + final_state_symbol
     is_initial_state = validate_initial_state(automaton_tuple[initial_state_symbol], automaton_tuple[states_set_symbol])
@@ -46,8 +47,9 @@ def build_automaton_model(automaton_tuple, final_state_symbol, states_set_symbol
     transition_function_dictionary = transform_transition_function_to_dictionary(automaton_tuple[
                                                                                 transition_function_symbol],
                                                                                 automaton_tuple[states_set_symbol],
-                                                                                automaton_tuple[alphabet_set_symbol])
-    is_transition_function = validate_transition_function(transition_function_dictionary,
+                                                                                automaton_tuple[alphabet_set_symbol],
+                                                                                 transition_function_re)
+    is_transition_function = validate_automata_transition_function(transition_function_dictionary,
                                                           automaton_tuple[states_set_symbol],
                                                           automaton_tuple[alphabet_set_symbol])
     assert is_transition_function, "Transition function was not well constructed: " + transition_function_symbol
@@ -142,14 +144,33 @@ def validate_initial_state(initial_state, states_set):
     return True if (initial_state in states_set) else False
 
 
-def transform_transition_function_to_dictionary(transition_function_set, states_set, ro_set):
+def transform_transition_function_to_dictionary(transition_function_set, states_set, ro_set, transition_function_re):
     transition_function_dictionary = {}
     for state in states_set:
         transition_function_dictionary[state] = {}
         for alphabet in ro_set:
             transition_function_dictionary[state][alphabet] = None
 
-    pattern = re.compile("\((.+)\s(.+)\)->\((.+)\s(.+)\s(.+)\)")
+    pattern = re.compile(transition_function_re)
+    for transition_function in transition_function_set:
+        transition_function = transition_function.strip()
+        match_obj = pattern.match(transition_function)
+        previous_state_transition_function = match_obj.group(1)
+        previous_ro_value_transition_function = match_obj.group(2)
+        next_state_transition_function = match_obj.group(3)
+        transition_function_dictionary[previous_state_transition_function][previous_ro_value_transition_function] = \
+            next_state_transition_function
+    return transition_function_dictionary
+
+
+def transform_tm_transition_function_to_dictionary(transition_function_set, states_set, ro_set, transition_function_re):
+    transition_function_dictionary = {}
+    for state in states_set:
+        transition_function_dictionary[state] = {}
+        for alphabet in ro_set:
+            transition_function_dictionary[state][alphabet] = None
+
+    pattern = re.compile(transition_function_re)
     for transition_function in transition_function_set:
         transition_function = transition_function.strip()
         match_obj = pattern.match(transition_function)
@@ -163,7 +184,18 @@ def transform_transition_function_to_dictionary(transition_function_set, states_
     return transition_function_dictionary
 
 
-def validate_transition_function(transition_function_dictionary, states_set, ro_set, head_movements=['R','L','S']):
+def validate_automata_transition_function(transition_function_dictionary, states_set, sigma_set):
+    is_valid = True
+    for state in transition_function_dictionary:
+        is_valid = is_valid and (state in states_set)
+        for string_character in transition_function_dictionary[state]:
+            is_valid = is_valid and (string_character in sigma_set)
+            value = transition_function_dictionary[state][string_character]
+            is_valid = is_valid and (value in states_set)
+    return is_valid
+
+
+def validate_tm_transition_function(transition_function_dictionary, states_set, ro_set, head_movements):
     is_valid = True
     for state in transition_function_dictionary:
         is_valid = is_valid and (state in states_set)

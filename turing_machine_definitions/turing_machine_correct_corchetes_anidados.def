@@ -15,6 +15,7 @@
 @q0=q0
 @b=b
 @F={q5}
+@HM={R,L,S}
 
 # Cadenas de prueba
 @test={[[[]]],[],[[][]],[][,[[]]],],][}

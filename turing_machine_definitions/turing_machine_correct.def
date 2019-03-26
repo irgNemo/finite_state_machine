@@ -7,6 +7,7 @@
 # q0: Estado inicial
 # b: Espacio en blanco
 # F: Conjunto de estados finales de aceptación (no vacio y subconjunto de Q)
+# MH: Movimientos posibles de la cabeza
 
 @Q={q0,q1,q2,q3,q4}
 @sigma={0,1}
@@ -15,6 +16,7 @@
 @q0=q0
 @b=b
 @F={q4}
+@HM={R,L,S}
 
 # Cadenas de prueba
 @test={0,1,01,001,011,110,10,000111,11000,111000}
